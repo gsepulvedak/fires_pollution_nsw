@@ -1,0 +1,40 @@
+.container {
+    border-style:dashed;
+    position:absolute;
+    border-width: 1px;
+}
+
+#map {
+    top:50px;
+    left:10px;
+    width:700px;
+    height:650px;
+}
+
+#aqplot {
+    top:50px;
+    left:720px;
+    width:700px;
+    height:650px;
+}
+
+#heatmap {
+    top:50px;
+    left:1440px;
+    width:400px;
+    height:650px;
+}
+
+#firefreq {
+    top:750px;
+    left:10px;
+    width:1410px;
+    height:200px;
+}
+
+#summary {
+    top:750px;
+    left:1440px;
+    width:400px;
+    height:200px;
+}
