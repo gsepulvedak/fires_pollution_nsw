@@ -71,10 +71,10 @@ firefreq <- fires_with_actives %>%
   summarise(dayFreq = n())
 
 # firefreq source df
-firefreq <- inner_join(firefreq, active_fires)
+# firefreq <- inner_join(firefreq, active_fires)
 
 # Period span dataframe
-fire_season <- tibble(date = seq(ymd("2019-07-01"), ymd("2020-06-30"), by = "1 day"))
+fire_season <- tibble(date = seq(ymd("2019-07-01"), ymd("2020-05-3"), by = "1 day"))
 
 # generate df for visualisation
 firesFreq <- left_join(fire_season, firefreq, by = c("date" = "StartDate")) %>% 
@@ -87,3 +87,5 @@ rm(fires, active_fires, fire_season)
 
 # Save to csv
 write_csv(firesFreq, "data/firesFreq.csv")
+
+
