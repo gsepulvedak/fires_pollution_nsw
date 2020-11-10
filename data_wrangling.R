@@ -83,12 +83,20 @@ firesFreq <- left_join(fire_season, firefreq, by = c("date" = "StartDate")) %>%
 firesFreq <- firesFreq %>% mutate(active_fires = vw(firesFreq$date))
 
 # Clean memory
-rm(fires, active_fires, fire_season)
+rm(fires, active_fires)
 
 # Save to csv
 write_csv(firesFreq, "data/firesFreq.csv")
 
+# burnt area data ----------------------------
+burnt_area <- fires_clean %>% st_drop_geometry() %>%  
+  group_by(StartDate) %>% summarise(area = sum(AreaHa))
 
+burnt_area <- left_join(fire_season, burnt_area, by = c("date" = "StartDate")) %>% 
+  mutate(area = ifelse(is.na(area), 0, area))
+
+# Save to csv
+write_csv(burnt_area, "data/burntarea.csv")
 
 
 # aqplot data --------------------------------------------
@@ -109,8 +117,9 @@ aq_sites_group <- aq_sites %>% group_by(Date, lat_group) %>%
 
 # generate aqplot
 aqplot <- aq_sites_group %>% 
-  select(Date, lat_group, avg_PM10, avg_PM25)  %>% 
-  filter(Date <= "2020-05-03")
+  select(Date, lat_group, PM10 = avg_PM10, PM25 = avg_PM25)  %>% 
+  filter(Date <= "2020-05-03") %>% 
+  pivot_longer(starts_with("PM"), names_to = "param")
 
 # Save to csv
 write_csv(aqplot, "data/aqplot.csv")

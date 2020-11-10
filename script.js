@@ -11,7 +11,7 @@ window.onload = function () {
                     .attr("width", firefreqWidth)
                     .attr("height", firefreqHeight),
         
-        margin = {left: 30, top: 10, right: 30, bottom: 20},
+        margin = {left: 35, top: 10, right: 30, bottom: 20},
         barPadding = 1;
         
         firefreqParser = function(d){
@@ -100,14 +100,13 @@ window.onload = function () {
         };
     
     // add svg
-    var ids = ["aq1", "aq2", "aq3", "aq4", "burntArea"]
+    var ids = ["aq1", "aq2", "aq3", "aq4"]
     ids.forEach(addSvg);
     
     // generate plots
     d3.csv("data/aqplot.csv", aqplotParser, function(d){
        
-        console.log(filterData(d, 1, "PM25"));
-        
+        // scales and axes
         var xScale = d3.scaleTime()
                         .domain(d3.extent(d, function(v) {return v.date}))
                         .range([margin.left, aqplotWidth - margin.right]);
@@ -120,15 +119,15 @@ window.onload = function () {
                             .scale(aqplotYscale)
                             .ticks(5);
         
-        // create line generator
+        // line generator
         var line = d3.line()
                         .x(function(d){return xScale(d.date)})
                         .y(function(d){return aqplotYscale(d.value)});
         
+        // helper function
         var addLine = function(id, group, param){
             
                 var classStyle = "line " + param;
-            
             
                 d3.select(id)
                     .append("path")
@@ -138,7 +137,7 @@ window.onload = function () {
             
         };
         
-        
+        // add lines to svg
         const obj = {"#aq1":4, "#aq2":3, "#aq3":2, "#aq4":1};
         
         for (var key in obj){
@@ -151,12 +150,70 @@ window.onload = function () {
                 .append("g")
                     .attr("transform", "translate(" + margin.left + ", 0)")
                     .call(yAxis_aq);
-            
         }
         
+    });
+    
+    // ---- BURNT AREA BAR PLOT -----
+    
+    var burntWidth = 700,
+        burntHeight = 650,
+        burntParser = function(d){
+            return {
+                date: parseDate(d.date),
+                area: parseFloat(d.area)
+            };
+        };
+    
+    var svgBurnt = d3.select("#aqplot")
+                        .append("svg")
+                        .attr("width", burntWidth)
+                        .attr("height", burntHeight/5)
+                        .attr("id", "burntarea")
+                        .style("display", "block")
+    
+    // generate plot
+    d3.csv("data/burntarea.csv", burntParser, function(d){
+        
+        // scales and axes
+        var xScale = d3.scaleTime()
+                        .domain(d3.extent(d, function(v) {return v.date}))
+                        .range([margin.left, burntWidth - margin.right]);
+        
+        var yScale = d3.scaleLinear()
+                            .domain(d3.extent(d, function(v){return v.area}))
+                            .range([burntHeight/5 - margin.bottom, margin.top]);
+        
+        var xAxis = d3.axisBottom()
+                        .scale(xScale);
+        
+        var yAxis = d3.axisLeft()
+                            .scale(yScale)
+                            .ticks(3)
+                            .tickFormat(d3.format(".2s"));
         
         
+        // add bars
+        svgBurnt.selectAll("rect")
+            .data(d)
+            .enter()
+            .append("rect")
+                .attr("x", function(v){return xScale(v.date)})
+                .attr("y", function(v){return yScale(v.area)})
+                .attr("width", burntWidth / d.length - barPadding) 
+                .attr("height", function(v){return burntHeight/5 - margin.bottom - yScale(v.area)})
+                .attr("fill", "grey");
         
+        //add axes
+        d3.select("#burntarea")
+            .append("g")
+            .attr("transform", "translate(0,"  + (burntHeight/5 - margin.bottom) + ")")
+            .call(xAxis);
+        
+        d3.select("#burntarea")
+            .append("g")
+            .attr("transform", "translate(" + margin.left + ",0)")
+            .call(yAxis);
         
     });
     
