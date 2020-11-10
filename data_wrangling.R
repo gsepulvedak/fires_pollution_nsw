@@ -74,7 +74,7 @@ firefreq <- fires_with_actives %>%
 # firefreq <- inner_join(firefreq, active_fires)
 
 # Period span dataframe
-fire_season <- tibble(date = seq(ymd("2019-07-01"), ymd("2020-05-3"), by = "1 day"))
+fire_season <- tibble(date = seq(ymd("2019-07-01"), ymd("2020-05-03"), by = "1 day"))
 
 # generate df for visualisation
 firesFreq <- left_join(fire_season, firefreq, by = c("date" = "StartDate")) %>% 
@@ -89,3 +89,28 @@ rm(fires, active_fires, fire_season)
 write_csv(firesFreq, "data/firesFreq.csv")
 
 
+
+
+# aqplot data --------------------------------------------
+
+# read original
+aq <- read_csv("/home/gon/Documents/Master/sem4/FIT5147_DataViz/project/data/DailyPoll_NSW_2019_2020_FireSeason.csv", col_types = "dcdddddddddd")
+aq$Date <- dmy(aq$Date) # parse character dates
+station <- read_csv("/home/gon/Documents/Master/sem4/FIT5147_DataViz/project/data/NSW Site Details.csv" , col_types = "dcddc")
+
+# group by latitude
+aq_coord <- aq %>% inner_join(station, by = "Site_Id")
+aq_sites <- aq_coord %>% mutate(lat_group = factor(cut(Latitude, breaks = 4, labels = FALSE), levels = c(4,3,2,1)))
+aq_sites_group <- aq_sites %>% group_by(Date, lat_group) %>% 
+  summarise(tot_PM10 = sum(PM10, na.rm = TRUE), tot_PM2.5 = sum(PM2.5, na.rm = TRUE)) %>% 
+  inner_join(aq_sites %>% group_by(lat_group) %>% summarise(site_count = n_distinct(Site_Id))) %>% 
+  mutate(avg_PM10 = tot_PM10/site_count) %>% 
+  mutate(avg_PM25 = tot_PM2.5/site_count)
+
+# generate aqplot
+aqplot <- aq_sites_group %>% 
+  select(Date, lat_group, avg_PM10, avg_PM25)  %>% 
+  filter(Date <= "2020-05-03")
+
+# Save to csv
+write_csv(aqplot, "data/aqplot.csv")

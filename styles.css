@@ -38,3 +38,19 @@
     width:400px;
     height:200px;
 }
+
+.line {
+    stroke: steelblue;
+    fill: none;
+}
+
+.line.PM10 {
+    stroke: black;
+    fill:none
+}
+
+
+.line.PM25 {
+    stroke: red;
+    fill:none
+}
