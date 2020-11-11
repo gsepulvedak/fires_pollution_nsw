@@ -130,3 +130,20 @@ aqplot <- aq_sites_group %>%
 
 # Save to csv
 # write_csv(aqplot, "data/aqplot.csv")
+
+# heatmap data -------------------------------
+
+# read source data
+aq <- read_csv("/home/gon/Documents/Master/sem4/FIT5147_DataViz/project/data/DailyPoll_NSW_2019_2020_FireSeason.csv", col_types = "dcdddddddddd")
+aq$Date <- dmy(aq$Date) # parse character dates
+station <- read_csv("/home/gon/Documents/Master/sem4/FIT5147_DataViz/project/data/NSW Site Details.csv" , col_types = "dcddc")
+
+# Generate dataset
+station_data <- aq %>% select(Site_Id, Date, PM10, PM2.5) %>% 
+  inner_join(station) %>% 
+  select(-Region) %>% 
+  pivot_longer(starts_with("PM"), names_to = "param") %>% 
+  filter(Site_Id != 1107)
+
+# save to csv
+write_csv(station_data, "data/stationdata.csv")

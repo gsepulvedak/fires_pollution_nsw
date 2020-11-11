@@ -1,10 +1,11 @@
 window.onload = function () {
     
+    // date parser for data loading
+    var parseDate = d3.timeParse("%Y-%m-%d");
     
     // ---- FIRES FREQUENCY BAR PLOT -----
     
-    var parseDate = d3.timeParse("%Y-%m-%d"),
-        firefreqWidth = 1410,
+    var firefreqWidth = 1410,
         firefreqHeight = 200,
         svgFreq = d3.select("#firefreq")
                     .append("svg")
@@ -146,6 +147,7 @@ window.onload = function () {
             addLine(key, value, "PM10");
             addLine(key, value, "PM25");
             
+            // and y axis
             d3.select(key)
                 .append("g")
                     .attr("transform", "translate(" + margin.left + ", 0)")
@@ -285,5 +287,6 @@ window.onload = function () {
         
     });
     
+ 
     
 };

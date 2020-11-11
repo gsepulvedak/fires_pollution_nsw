@@ -25,6 +25,13 @@
     height:650px;
 }
 
+#pollplot {
+    top:50px;
+    left:1440px;
+    width:400px;
+    height:650px;
+}
+
 #firefreq {
     top:750px;
     left:10px;
