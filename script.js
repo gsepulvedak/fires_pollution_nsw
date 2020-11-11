@@ -217,6 +217,73 @@ window.onload = function () {
         
     });
     
+    // ---- FIRES MAP. Based on Mike Bostock's tutorial at https://bost.ocks.org/mike/leaflet/-----
+    
+    var mapWidth = 700,
+        mapHeight = 650,
+        
+        // add base map
+        map = L.map("map").setView([-32.6, 149.8], 6),
+        tiles = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.{ext}', {
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            subdomains: 'abcd',
+            minZoom: 4,
+            maxZoom: 12,
+            ext: 'png'
+        }).addTo(map);
+    
+    
+    var svgMap = d3.select(map.getPanes().overlayPane).append("svg"),
+        g = svgMap.append("g").attr("class", "leaflet-zoom-hide");
+    
+    // read ploygon data 
+    d3.json("data/firespoly.json", function(d){
+        
+        // reproject d3 geopath into leaflet's projection function
+        var projectPoint = function(x, y) {
+                var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+                this.stream.point(point.x, point.y);
+            };
+        
+        // apply projection conversion
+        var transform = d3.geoTransform({point: projectPoint}),
+            poly = d3.geoPath().projection(transform);
+        
+        // add polygons selections to be updated over base map
+        var polygons = g.selectAll("path")
+                            .data(d.features)
+                            .enter()
+                            .append("path")
+                                .attr("stroke", "grey")
+                                .attr("fill", "orange")
+                                .attr("opacity", 0.7);
+        
+        // update svg size and relocate polygons group
+        var update = function(){
+            
+             // fit svg size to map view
+            var bounds = poly.bounds(d),
+                topLeft = bounds[0],
+                bottomRight = bounds[1];
+
+            svgMap.attr("width", bottomRight[0] - topLeft[0])
+                    .attr("height", bottomRight[1] - topLeft[1])
+                    .style("left", topLeft[0] + "px")
+                    .style("top", topLeft[1] + "px");
+
+            g.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
+            
+            polygons.attr("d", poly);
+            
+        };
+        
+        // update polygons and svg size on map interaction
+        map.on("moveend", update);
+        
+        // execute
+        update();
+        
+    });
     
     
 };

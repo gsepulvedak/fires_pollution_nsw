@@ -1,6 +1,7 @@
 library(sf)
 library(tidyverse)
 library(lubridate)
+library(geojsonsf)
 
 
 # firefreq data ---------------------
@@ -86,7 +87,13 @@ firesFreq <- firesFreq %>% mutate(active_fires = vw(firesFreq$date))
 rm(fires, active_fires)
 
 # Save to csv
-write_csv(firesFreq, "data/firesFreq.csv")
+# write_csv(firesFreq, "data/firesFreq.csv")
+
+# create fires geoJSON
+firespoly <- sf_geojson(fires_clean)
+
+# save to file
+write_lines(firespoly, "data/firespoly.json")
 
 # burnt area data ----------------------------
 burnt_area <- fires_clean %>% st_drop_geometry() %>%  
@@ -122,4 +129,4 @@ aqplot <- aq_sites_group %>%
   pivot_longer(starts_with("PM"), names_to = "param")
 
 # Save to csv
-write_csv(aqplot, "data/aqplot.csv")
+# write_csv(aqplot, "data/aqplot.csv")
