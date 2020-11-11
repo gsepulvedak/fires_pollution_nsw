@@ -15,10 +15,30 @@
     <body>
         <div id="map" class="container"></div>
         <div id="aqplot" class="container"></div>
+<!--
         <div id="heatmap" class="container"></div>
         <div id="pollplot" class="container"></div>
+-->
         <div id="firefreq" class="container"></div>
-        <div id="summary" class="container"></div>
+<!--        <div id="summary" class="container"></div>-->
+        
+        <div id="map_tooltip" class="hidden">
+            <p>Name: <span id="fireName">0</span></p>
+            <p>Start - End dates: <span id="dateRange">0</span></p>
+            <p>Burnt Area: <span id="burntArea">0</span></p>
+        </div>
+        
+        <div id="firefreq_tooltip" class="hidden">
+            <p>Date: <span id="fireDate">0</span></p>
+            <p>Fires started: <span id="firesStarted">0</span></p>
+            <p>Active fires by date: <span id="activeFires">0</span></p>
+        </div>
+        
+        <div id="aq_tooltip" class="hidden">
+            <p>Parameter: <span id="aqParam">0</span></p>
+            <p>Date: <span id="aqDate">0</span></p>
+            <p>Measurements average: <span id="aqAverage">0</span></p>
+        </div>
         
         <script src="https://d3js.org/d3.v4.min.js"></script>
         <script src="https://d3js.org/d3-scale-chromatic.v2.min.js"></script>

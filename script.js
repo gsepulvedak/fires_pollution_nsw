@@ -18,6 +18,7 @@ window.onload = function () {
         firefreqParser = function(d){
         return {
             date: parseDate(d.date),
+            dateString: d.date,
             dayFreq: parseInt(d.dayFreq),
             active: parseInt(d.active_fires)
         };
@@ -26,6 +27,7 @@ window.onload = function () {
     // Create visualisation
     d3.csv("data/firesFreq.csv", firefreqParser, function(d){
        
+        console.log(d);
         // axes scale
         var xScale = d3.scaleTime()
                         .domain(d3.extent(d, function(v) {return v.date}))
@@ -54,7 +56,34 @@ window.onload = function () {
                 .attr("y", function(v){return yScale_ff(v.dayFreq)})
                 .attr("width", firefreqWidth / d.length - barPadding) 
                 .attr("height", function(v){return firefreqHeight - margin.bottom - yScale_ff(v.dayFreq)})
-                .attr("fill", "orange");
+                .attr("fill", "orange")
+        
+                //tooltip
+                .on("mouseover", function(d){
+            
+                    d3.select(this)
+                        .attr("fill", "#aa2323");
+                    
+                    var xPosition = d3.mouse(this)[0];
+            
+                    
+                    d3.select("#firefreq_tooltip")
+                        .style("left", xPosition + "px")
+                        .style("bottom", "138px")
+                        .select("#fireDate").text(d.dateString);
+            
+                    d3.select("#firesStarted").text(d.dayFreq);
+                    d3.select("#activeFires").text(d.active);
+                    
+                    d3.select("#firefreq_tooltip")
+                        .classed("hidden", false);
+        })
+                .on("mouseout", function(){
+                    d3.select("#firefreq_tooltip")
+                        .classed("hidden", true);
+                    d3.select(this)
+                        .attr("fill", "orange");
+        });
         
         // draw axes
         svgFreq.append("g")
