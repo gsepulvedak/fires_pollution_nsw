@@ -86,9 +86,6 @@ firesFreq <- firesFreq %>% mutate(active_fires = vw(firesFreq$date))
 # Clean memory
 rm(fires, active_fires)
 
-# Save to csv
-# write_csv(firesFreq, "data/firesFreq.csv")
-
 # create fires geoJSON
 firespoly <- sf_geojson(fires_clean)
 
@@ -102,8 +99,16 @@ burnt_area <- fires_clean %>% st_drop_geometry() %>%
 burnt_area <- left_join(fire_season, burnt_area, by = c("date" = "StartDate")) %>% 
   mutate(area = ifelse(is.na(area), 0, area))
 
+burnt_area <- burnt_area %>% 
+  mutate(cum_area = cumsum(area))
+
+firesFreq <- burnt_area %>% 
+  inner_join(firesFreq) %>%
+  select(date, dayFreq, active_fires, cum_area)
+
 # Save to csv
-write_csv(burnt_area, "data/burntarea.csv")
+write_csv(burnt_area, "data/burntarea.csv") # burnt area
+write_csv(firesFreq, "data/firesFreq.csv") # fire frequency
 
 
 # aqplot data --------------------------------------------

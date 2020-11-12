@@ -6,7 +6,7 @@ window.onload = function () {
     // ---- FIRES FREQUENCY BAR PLOT -----
     
     var firefreqWidth = 1410,
-        firefreqHeight = 200,
+        firefreqHeight = 150,
         svgFreq = d3.select("#firefreq")
                     .append("svg")
                     .attr("width", firefreqWidth)
@@ -75,12 +75,46 @@ window.onload = function () {
                     
                     d3.select("#firefreq_tooltip")
                         .classed("hidden", false);
+            
+                    //interaction
+            
+                    var newXscale = xScale.range([margin.left, aqplotWidth - margin.right]);
+            
+                    d3.selectAll("#aq2, #aq3, #aq4")
+                        .append("line")
+                        .attr("id", "aqInd")
+                        .attr("x1", newXscale(d.date))
+                        .attr("y1", 0)
+                        .attr("x2", newXscale(d.date))
+                        .attr("y2", aqplotHeight/5)
+                        .attr("stroke", "blue");
+            
+                    d3.selectAll("#aq1")
+                        .append("line")
+                        .attr("id", "aq2Ind")
+                        .attr("x1", newXscale(d.date))
+                        .attr("y1", margin.top)
+                        .attr("x2", newXscale(d.date))
+                        .attr("y2", aqplotHeight/5)
+                        .attr("stroke", "blue");
+            
+                    d3.selectAll("#burntarea")
+                        .append("line")
+                        .attr("id", "areaInd")
+                        .attr("x1", newXscale(d.date))
+                        .attr("y1", 0)
+                        .attr("x2", newXscale(d.date))
+                        .attr("y2", aqplotHeight/5 - margin.bottom)
+                        .attr("stroke", "blue");
+            
+            
         })
                 .on("mouseout", function(){
                     d3.select("#firefreq_tooltip")
                         .classed("hidden", true);
                     d3.select(this)
                         .attr("fill", "orange");
+                    d3.selectAll("#aqInd, #aq2Ind, #areaInd").remove();
         });
         
         // draw axes
@@ -155,7 +189,7 @@ window.onload = function () {
         // helper function for adding lines and other functionality
         var addLine = function(id, group){
                 
-                // parameters path
+                // draw PM10 and PM2.5 paths
                 var path1 = d3.select(id)
                             .append("path")
                             .datum(filterData(d, group, "PM10"))
@@ -168,7 +202,7 @@ window.onload = function () {
                             .attr("class", "line PM25")
                             .attr("d", line);
             
-                // focus on line plots
+                // focus on line plots hovering
                 var circle1 = d3.select(id)
                         .append("circle")
                         .attr("cx", 0)
@@ -177,10 +211,11 @@ window.onload = function () {
                         .attr("opacity", 0)
                         .attr("fill", "black"),
                     
+                    // line that helps to roughly check PM concentration
                     line1 = d3.select(id)
                                 .append("line"),
                     
-                    // focus on burnt area plot
+                    // focus on burnt area plot (helps to check time of PM measurements)
                     line2 = d3.select("#burntarea")
                                 .append("line");
             
@@ -191,7 +226,7 @@ window.onload = function () {
                                 .attr("fill", "#ea1717")
                                 .attr("opacity", 0);
                 
-                
+                // get coordinates of path to draw circle accordingly (based on http://bl.ocks.org/methodofaction/3824661)
                 var pathElem1 = path1.node(),
                     pathElem2 = path2.node(),
                     pathLength1 = pathElem1.getTotalLength() - margin.right,
@@ -275,14 +310,15 @@ window.onload = function () {
         
     });
     
-    // ---- BURNT AREA BAR PLOT -----
+    // ---- BURNT AREA PLOT -----
     
     var burntWidth = 700,
         burntHeight = 650,
         burntParser = function(d){
             return {
                 date: parseDate(d.date),
-                area: parseFloat(d.area)
+                area: parseFloat(d.area),
+                cum_area: parseFloat(d.cum_area)
             };
         };
     
@@ -299,31 +335,31 @@ window.onload = function () {
         // scales and axes
         var xScale = d3.scaleTime()
                         .domain(d3.extent(d, function(v) {return v.date}))
-                        .range([margin.left, burntWidth - margin.right]);
+                        .range([margin.left, burntWidth - margin.right]),
         
-        var yScale = d3.scaleLinear()
-                            .domain(d3.extent(d, function(v){return v.area}))
-                            .range([burntHeight/5 - margin.bottom, margin.top]);
+            yScale = d3.scaleLinear()
+                            .domain(d3.extent(d, function(v){return v.cum_area}))
+                            .range([burntHeight/5 - margin.bottom, margin.top]),
         
-        var xAxis = d3.axisBottom()
-                        .scale(xScale);
+            xAxis = d3.axisBottom()
+                        .scale(xScale),
         
-        var yAxis = d3.axisLeft()
+            yAxis = d3.axisLeft()
                             .scale(yScale)
                             .ticks(3)
-                            .tickFormat(d3.format(".2s"));
-        
-        
-        // add bars
-        svgBurnt.selectAll("rect")
-            .data(d)
-            .enter()
-            .append("rect")
-                .attr("x", function(v){return xScale(v.date)})
-                .attr("y", function(v){return yScale(v.area)})
-                .attr("width", burntWidth / d.length - barPadding) 
-                .attr("height", function(v){return burntHeight/5 - margin.bottom - yScale(v.area)})
-                .attr("fill", "grey");
+                            .tickFormat(d3.format(".2s")),
+            
+            area = d3.area()
+                        .x(function(d){return xScale(d.date)})
+                        .y0(yScale(0))
+                        .y1(function(d){return yScale(d.cum_area)});
+            
+        // add area path
+        svgBurnt.append("path")
+            .datum(d)
+                .attr("stroke", "#db7979")
+                .attr("fill", "#db7979")
+                .attr("d", area);
         
         //add axes
         d3.select("#burntarea")
@@ -344,7 +380,7 @@ window.onload = function () {
         mapHeight = 650,
         
         // add base map
-        map = L.map("map").setView([-32.6, 149.8], 6),
+        map = L.map("map").setView([-34, 149.8], 6),
         tiles = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.{ext}', {
             attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             subdomains: 'abcd',
@@ -359,10 +395,10 @@ window.onload = function () {
         svgMap = overlay.select("svg").attr("pointer-events", "auto"),
         g = svgMap.append("g").attr("class", "leaflet-zoom-hide");
     
+     
     // read ploygon data 
     d3.json("data/firespoly.json", function(d){
         
-        console.log(d);
         
         // reproject d3 geopath into leaflet's projection function
         var projectPoint = function(x, y) {
@@ -379,6 +415,7 @@ window.onload = function () {
         var polygons = g.selectAll("path")
                             .data(d.features)
                             .enter()
+//                            .filter(function(v) {return v.properties.StartDate == "2020-01-01"})
                             .append("path")
                                 .attr("stroke", "grey")
                                 .attr("fill", "orange")
@@ -414,34 +451,17 @@ window.onload = function () {
                                         .classed("hidden", true);
                                 });
         
-        // update svg size and relocate polygons group
+        // re-render polygons function
         var update = function(){
-            
-          /*   // fit svg size to map view
-            var bounds = poly.bounds(d),
-                topLeft = bounds[0],
-                bottomRight = bounds[1];
-            
-
-            svgMap.attr("width", bottomRight[0] - topLeft[0])
-                    .attr("height", bottomRight[1] - topLeft[1])
-                    .style("left", topLeft[0] + "px")
-                    .style("top", topLeft[1] + "px");
-
-            g.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
-            */
             polygons
                 .attr("d", poly);
-              
-            
         };
         
-        // update polygons and svg size on map interaction
+        // update polygons on map interaction
         map.on("moveend", update);
         
         // execute
         update();
-        
     });
     
  
