@@ -92,7 +92,6 @@
     display: none;
 }
 
-.overlay {
-/*    fill: none;*/
-    pointer-events: all;
+.leaflet-top-pane {
+    pointer-events: none;
 }

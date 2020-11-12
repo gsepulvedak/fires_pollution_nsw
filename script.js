@@ -250,7 +250,6 @@ window.onload = function () {
                         circle2.attr("opacity", 0);
                 });
                 
-            console.log(circle1);    
         };
         
         // add lines to svg
@@ -354,12 +353,16 @@ window.onload = function () {
             ext: 'png'
         }).addTo(map);
     
+    L.svg({clickable:true}).addTo(map);
     
-    var svgMap = d3.select(map.getPanes().overlayPane).append("svg"),
+    var overlay = d3.select(map.getPanes().overlayPane),
+        svgMap = overlay.select("svg").attr("pointer-events", "auto"),
         g = svgMap.append("g").attr("class", "leaflet-zoom-hide");
     
     // read ploygon data 
     d3.json("data/firespoly.json", function(d){
+        
+        console.log(d);
         
         // reproject d3 geopath into leaflet's projection function
         var projectPoint = function(x, y) {
@@ -369,7 +372,8 @@ window.onload = function () {
         
         // apply projection conversion
         var transform = d3.geoTransform({point: projectPoint}),
-            poly = d3.geoPath().projection(transform);
+            poly = d3.geoPath().projection(transform),
+            format = d3.format(",");
         
         // add polygons selections to be updated over base map
         var polygons = g.selectAll("path")
@@ -378,15 +382,46 @@ window.onload = function () {
                             .append("path")
                                 .attr("stroke", "grey")
                                 .attr("fill", "orange")
-                                .attr("opacity", 0.7);
+                                .attr("opacity", 0.7)
+                                .attr("z-inedx", 2)
+                                .attr("class", "leaflet-interactive")
+        
+                                // tooltip
+                                .on("mouseover", function(d){
+                                    d3.select(this).attr("fill", "red");
+                                    
+                                    var mouseCoord = d3.mouse(this),
+                                        xPosition = mouseCoord[0],
+                                        yPosition = mouseCoord[1];
+            
+                                    d3.select("#map_tooltip")
+                                        .style("left", (xPosition + 40) + "px")
+                                        .style("top", (yPosition - 40) + "px")
+                                        .style("z-index", 999)
+                                        .select("#fireName").text(d.properties.FireName);
+
+                                    d3.select("#dateRange")
+                                        .text(d.properties.StartDate + " - " + d.properties.EndDate + " (" + d.properties.Duration + " days)");
+                                    d3.select("#burntArea").text(format(Math.round(d.properties.AreaHa)) + " Ha");
+
+                                    d3.select("#map_tooltip")
+                                        .classed("hidden", false);
+                                })
+        
+                                .on("mouseout", function(d){
+                                    d3.select(this).attr("fill", "orange");
+                                    d3.select("#map_tooltip")
+                                        .classed("hidden", true);
+                                });
         
         // update svg size and relocate polygons group
         var update = function(){
             
-             // fit svg size to map view
+          /*   // fit svg size to map view
             var bounds = poly.bounds(d),
                 topLeft = bounds[0],
                 bottomRight = bounds[1];
+            
 
             svgMap.attr("width", bottomRight[0] - topLeft[0])
                     .attr("height", bottomRight[1] - topLeft[1])
@@ -394,8 +429,10 @@ window.onload = function () {
                     .style("top", topLeft[1] + "px");
 
             g.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
-            
-            polygons.attr("d", poly);
+            */
+            polygons
+                .attr("d", poly);
+              
             
         };
         
