@@ -27,7 +27,6 @@ window.onload = function () {
     // Create visualisation
     d3.csv("data/firesFreq.csv", firefreqParser, function(d){
        
-        console.log(d);
         // axes scale
         var xScale = d3.scaleTime()
                         .domain(d3.extent(d, function(v) {return v.date}))
@@ -66,7 +65,6 @@ window.onload = function () {
                     
                     var xPosition = d3.mouse(this)[0];
             
-                    
                     d3.select("#firefreq_tooltip")
                         .style("left", xPosition + "px")
                         .style("bottom", "138px")
@@ -154,17 +152,105 @@ window.onload = function () {
                         .x(function(d){return xScale(d.date)})
                         .y(function(d){return aqplotYscale(d.value)});
         
-        // helper function
-        var addLine = function(id, group, param){
+        // helper function for adding lines and other functionality
+        var addLine = function(id, group){
+                
+                // parameters path
+                var path1 = d3.select(id)
+                            .append("path")
+                            .datum(filterData(d, group, "PM10"))
+                            .attr("class", "line PM10")
+                            .attr("d", line),
             
-                var classStyle = "line " + param;
+                    path2 = d3.select(id)
+                            .append("path")
+                            .datum(filterData(d, group, "PM25"))
+                            .attr("class", "line PM25")
+                            .attr("d", line);
             
+                // focus on line plots
+                var circle1 = d3.select(id)
+                        .append("circle")
+                        .attr("cx", 0)
+                        .attr("cy", 0)
+                        .attr("r", 3)
+                        .attr("opacity", 0)
+                        .attr("fill", "black"),
+                    
+                    line1 = d3.select(id)
+                                .append("line"),
+                    
+                    // focus on burnt area plot
+                    line2 = d3.select("#burntarea")
+                                .append("line");
+            
+                    circle2 = d3.select("#burntarea")
+                                .append("circle")
+                                .attr("r", 3)
+                                .attr("cy", aqplotHeight/5 - margin.bottom)
+                                .attr("fill", "#ea1717")
+                                .attr("opacity", 0);
+                
+                
+                var pathElem1 = path1.node(),
+                    pathElem2 = path2.node(),
+                    pathLength1 = pathElem1.getTotalLength() - margin.right,
+                    pathLength2 = pathElem2.getTotalLength() - margin.right,
+                    offsetLeft = document.getElementById("aqplot").offsetLeft;
+            
+
                 d3.select(id)
-                    .append("path")
-                    .datum(filterData(d, group, param))
-                    .attr("class", classStyle)
-                    .attr("d", line);
-            
+                    .on("mousemove", function(){
+                        var x = d3.mouse(this)[0],
+                            start = x,
+                            end = pathLength1,
+                            target;
+
+                        while(true) {
+                            target = Math.floor((start + end) / 2);
+                            pos1 = pathElem1.getPointAtLength(target);
+                            if ((target === end || target === start) && pos1.x !== x) {
+                                break;
+                            }
+                            if (pos1.x > x)      end = target;
+                            else if (pos1.x < x) start = target;
+                            else                break;
+                        }
+
+                        circle1
+                            .attr("opacity", 1)
+                            .attr("cx", x)
+                            .attr("cy", pos1.y);
+                    
+                        line1  
+                            .attr("x1", margin.left)
+                            .attr("y1", pos1.y)
+                            .attr("x2", x-3)
+                            .attr("y2", pos1.y)
+                            .attr("stroke", "grey")
+                            .attr("opacity", 1)
+                    
+                        line2
+                            .attr("x1", x)
+                            .attr("y1", margin.top)
+                            .attr("x2", x)
+                            .attr("y2", aqplotHeight/5 - margin.bottom)
+                            .attr("stroke", "#ea1717")
+                            .attr("opacity", 1);
+                    
+                        circle2
+                            .attr("cx", x)
+                            .attr("opacity", 1);
+                            
+                })
+                    .on("mouseout", function(){
+                        circle1.attr("opacity", 0);
+                        line1.attr("opacity", 0);
+                        line2.attr("opacity", 0);
+                        circle2.attr("opacity", 0);
+                });
+                
+            console.log(circle1);    
         };
         
         // add lines to svg
@@ -173,8 +259,8 @@ window.onload = function () {
         for (var key in obj){
             
             var value = obj[key];
-            addLine(key, value, "PM10");
-            addLine(key, value, "PM25");
+            addLine(key, value);
+//            addLine(key, value, "PM25");
             
             // and y axis
             d3.select(key)
@@ -182,6 +268,11 @@ window.onload = function () {
                     .attr("transform", "translate(" + margin.left + ", 0)")
                     .call(yAxis_aq);
         }
+        
+        // values over path. Based on http://bl.ocks.org/methodofaction/3824661
+        
+        
+            
         
     });
     

@@ -91,3 +91,8 @@
 #map_tooltip.hidden, #firefreq_tooltip.hidden, #aq_tooltip.hidden {
     display: none;
 }
+
+.overlay {
+/*    fill: none;*/
+    pointer-events: all;
+}
