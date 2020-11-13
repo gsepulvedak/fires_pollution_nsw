@@ -62,7 +62,7 @@
     fill:none
 }
 
-#map_tooltip, #firefreq_tooltip, #aq_tooltip {
+#firefreq_tooltip {
     position: absolute;
     width: auto;
     height: auto;
@@ -75,7 +75,26 @@
     -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
     box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
     pointer-events: none;
-    opacity: 0.9;
+    opacity: 0.7;
+    border-style: solid;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+#map_tooltip {
+    position: absolute;
+    width: auto;
+    height: auto;
+    border: 1px;
+    background-color: white;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    opacity: 0.8;
     border-style: solid;
     border-radius: 10px;
     padding: 10px;

@@ -1,133 +1,8 @@
 window.onload = function () {
     
     // date parser for data loading
-    var parseDate = d3.timeParse("%Y-%m-%d");
-    
-    // ---- FIRES FREQUENCY BAR PLOT -----
-    
-    var firefreqWidth = 1410,
-        firefreqHeight = 150,
-        svgFreq = d3.select("#firefreq")
-                    .append("svg")
-                    .attr("width", firefreqWidth)
-                    .attr("height", firefreqHeight),
-        
-        margin = {left: 35, top: 10, right: 30, bottom: 20},
-        barPadding = 1;
-        
-        firefreqParser = function(d){
-        return {
-            date: parseDate(d.date),
-            dateString: d.date,
-            dayFreq: parseInt(d.dayFreq),
-            active: parseInt(d.active_fires)
-        };
-    };
-    
-    // Create visualisation
-    d3.csv("data/firesFreq.csv", firefreqParser, function(d){
-       
-        // axes scale
-        var xScale = d3.scaleTime()
-                        .domain(d3.extent(d, function(v) {return v.date}))
-                        .range([margin.left, firefreqWidth - margin.right]);
-        
-        var yScale_ff = d3.scaleLinear()
-                        .domain(d3.extent(d, function(v) {return v.dayFreq}))
-                        .range([firefreqHeight - margin.bottom, margin.top]);
-        
-        // axes
-        var xAxis = d3.axisBottom()
-                        .scale(xScale);
-//                        .ticks(20); // a bit of customisation
-
-        var yAxis_ff = d3.axisLeft()
-                        .scale(yScale_ff);
-//                        .ticks(7); // a bit of customisation
-        
-        
-        // draw bars
-        svgFreq.selectAll("rect")
-            .data(d)
-            .enter()
-            .append("rect")
-                .attr("x", function(v){return xScale(v.date)})
-                .attr("y", function(v){return yScale_ff(v.dayFreq)})
-                .attr("width", firefreqWidth / d.length - barPadding) 
-                .attr("height", function(v){return firefreqHeight - margin.bottom - yScale_ff(v.dayFreq)})
-                .attr("fill", "orange")
-        
-                //tooltip
-                .on("mouseover", function(d){
-            
-                    d3.select(this)
-                        .attr("fill", "#aa2323");
-                    
-                    var xPosition = d3.mouse(this)[0];
-            
-                    d3.select("#firefreq_tooltip")
-                        .style("left", xPosition + "px")
-                        .style("bottom", "138px")
-                        .select("#fireDate").text(d.dateString);
-            
-                    d3.select("#firesStarted").text(d.dayFreq);
-                    d3.select("#activeFires").text(d.active);
-                    
-                    d3.select("#firefreq_tooltip")
-                        .classed("hidden", false);
-            
-                    //interaction
-            
-                    var newXscale = xScale.range([margin.left, aqplotWidth - margin.right]);
-            
-                    d3.selectAll("#aq2, #aq3, #aq4")
-                        .append("line")
-                        .attr("id", "aqInd")
-                        .attr("x1", newXscale(d.date))
-                        .attr("y1", 0)
-                        .attr("x2", newXscale(d.date))
-                        .attr("y2", aqplotHeight/5)
-                        .attr("stroke", "blue");
-            
-                    d3.selectAll("#aq1")
-                        .append("line")
-                        .attr("id", "aq2Ind")
-                        .attr("x1", newXscale(d.date))
-                        .attr("y1", margin.top)
-                        .attr("x2", newXscale(d.date))
-                        .attr("y2", aqplotHeight/5)
-                        .attr("stroke", "blue");
-            
-                    d3.selectAll("#burntarea")
-                        .append("line")
-                        .attr("id", "areaInd")
-                        .attr("x1", newXscale(d.date))
-                        .attr("y1", 0)
-                        .attr("x2", newXscale(d.date))
-                        .attr("y2", aqplotHeight/5 - margin.bottom)
-                        .attr("stroke", "blue");
-            
-            
-        })
-                .on("mouseout", function(){
-                    d3.select("#firefreq_tooltip")
-                        .classed("hidden", true);
-                    d3.select(this)
-                        .attr("fill", "orange");
-                    d3.selectAll("#aqInd, #aq2Ind, #areaInd").remove();
-        });
-        
-        // draw axes
-        svgFreq.append("g")
-            .attr("transform", "translate(0," + (firefreqHeight - margin.bottom) + ")")
-            .call(xAxis);
-        
-        svgFreq.append("g")
-            .attr("transform", "translate(" + margin.left + ", 0)")
-            .call(yAxis_ff);
-        
-    });
-    
+    var parseDate = d3.timeParse("%Y-%m-%d"),
+        date2string = d3.timeFormat("%Y-%m-%d");
     
     // ---- AIR QUALITY LINE PLOTS -----
     
@@ -376,6 +251,7 @@ window.onload = function () {
     
     // ---- FIRES MAP. Based on Mike Bostock's tutorial at https://bost.ocks.org/mike/leaflet/-----
     
+    // MAP VARIABLES
     var mapWidth = 700,
         mapHeight = 650,
         
@@ -395,75 +271,260 @@ window.onload = function () {
         svgMap = overlay.select("svg").attr("pointer-events", "auto"),
         g = svgMap.append("g").attr("class", "leaflet-zoom-hide");
     
-     
-    // read ploygon data 
-    d3.json("data/firespoly.json", function(d){
+    // FIRE FREQUENCY BAR PLOT VARIABLES
+    var firefreqWidth = 1410,
+        firefreqHeight = 150,
+        svgFreq = d3.select("#firefreq")
+                    .append("svg")
+                    .attr("width", firefreqWidth)
+                    .attr("height", firefreqHeight)
+                    .attr("id", "svg_ff"),
         
+        margin = {left: 35, top: 10, right: 30, bottom: 20},
+        barPadding = 1;
         
-        // reproject d3 geopath into leaflet's projection function
-        var projectPoint = function(x, y) {
-                var point = map.latLngToLayerPoint(new L.LatLng(y, x));
-                this.stream.point(point.x, point.y);
-            };
-        
-        // apply projection conversion
-        var transform = d3.geoTransform({point: projectPoint}),
-            poly = d3.geoPath().projection(transform),
-            format = d3.format(",");
-        
-        // add polygons selections to be updated over base map
-        var polygons = g.selectAll("path")
-                            .data(d.features)
-                            .enter()
-//                            .filter(function(v) {return v.properties.StartDate == "2020-01-01"})
-                            .append("path")
-                                .attr("stroke", "grey")
-                                .attr("fill", "orange")
-                                .attr("opacity", 0.7)
-                                .attr("z-inedx", 2)
-                                .attr("class", "leaflet-interactive")
-        
-                                // tooltip
-                                .on("mouseover", function(d){
-                                    d3.select(this).attr("fill", "red");
-                                    
-                                    var mouseCoord = d3.mouse(this),
-                                        xPosition = mouseCoord[0],
-                                        yPosition = mouseCoord[1];
-            
-                                    d3.select("#map_tooltip")
-                                        .style("left", (xPosition + 40) + "px")
-                                        .style("top", (yPosition - 40) + "px")
-                                        .style("z-index", 999)
-                                        .select("#fireName").text(d.properties.FireName);
-
-                                    d3.select("#dateRange")
-                                        .text(d.properties.StartDate + " - " + d.properties.EndDate + " (" + d.properties.Duration + " days)");
-                                    d3.select("#burntArea").text(format(Math.round(d.properties.AreaHa)) + " Ha");
-
-                                    d3.select("#map_tooltip")
-                                        .classed("hidden", false);
-                                })
-        
-                                .on("mouseout", function(d){
-                                    d3.select(this).attr("fill", "orange");
-                                    d3.select("#map_tooltip")
-                                        .classed("hidden", true);
-                                });
-        
-        // re-render polygons function
-        var update = function(){
-            polygons
-                .attr("d", poly);
+        firefreqParser = function(csv){
+        return {
+            date: parseDate(csv.date),
+            dateString: csv.date,
+            dayFreq: parseInt(csv.dayFreq),
+            active: parseInt(csv.active_fires)
         };
+    };
+    
+    //read fire frequency csv
+    d3.csv("data/firesFreq.csv", firefreqParser, function(csv){
         
-        // update polygons on map interaction
-        map.on("moveend", update);
+        // read fire ploygons data 
+        d3.json("data/firespoly.json", function(d){
+
+            
+            // FIRE PLOT
+            
+            // reproject d3 geopath into leaflet's projection function
+            var projectPoint = function(x, y) {
+                    var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+                    this.stream.point(point.x, point.y);
+                };
+
+            // apply projection conversion
+            var transform = d3.geoTransform({point: projectPoint}),
+                poly = d3.geoPath().projection(transform),
+                format = d3.format(",");
+
+            // add polygons to base map
+            var polygons = g.selectAll("path")
+                                .data(d.features)
+                                .enter()
+                                .append("path")
+                                    .attr("stroke", "grey")
+                                    .attr("fill", "orange")
+                                    .attr("opacity", 0.7)
+                                    .attr("z-inedx", 2)
+                                    .attr("class", "leaflet-interactive")
+
+                                    // tooltip
+                                    .on("mouseover", function(d){
+                                        
+                                        if (notClicked){
+                                            d3.select(this).attr("fill", "red");
+                                        }
+
+                                        var xPosition = d3.event.pageX,
+                                            yPosition = d3.event.pageY;
+                                        
+
+                                        d3.select("#map_tooltip")
+                                            .style("left", (xPosition + 30) + "px")
+                                            .style("top", (yPosition - 40) + "px")
+                                            .style("z-index", 999)
+                                            .select("#fireName").text(d.properties.FireName);
+
+                                        d3.select("#dateRange")
+                                            .text(d.properties.StartDate + " - " + d.properties.EndDate + " (" + d.properties.Duration + " days)");
+                                        d3.select("#burntArea").text(format(Math.round(d.properties.AreaHa)) + " Ha");
+
+                                        d3.select("#map_tooltip")
+                                            .classed("hidden", false);
+                                    })
+
+                                    .on("mouseout", function(d){
+                                        if(notClicked){
+                                            d3.select(this).attr("fill", "orange");
+                                        }
+                                        d3.select("#map_tooltip")
+                                                .classed("hidden", true);
+                                        
+                                    });
+
+            // re-render polygons function
+            var update = function(){
+                polygons
+                    .attr("d", poly);
+            };
+
+            // update polygons on map interaction
+            map.on("moveend", update);
+
+            // execute
+            update();
         
-        // execute
-        update();
+            // FIRE FREQUENCY BAR PLOT
+            
+            // axes scale
+            var xScale = d3.scaleTime()
+                            .domain(d3.extent(csv, function(v) {return v.date}))
+                            .range([margin.left, firefreqWidth - margin.right]);
+
+            var yScale_ff = d3.scaleLinear()
+                            .domain(d3.extent(csv, function(v) {return v.dayFreq}))
+                            .range([firefreqHeight - margin.bottom, margin.top]);
+
+            // axes
+            var xAxis = d3.axisBottom()
+                            .scale(xScale);
+    //                        .ticks(20); // a bit of customisation
+
+            var yAxis_ff = d3.axisLeft()
+                            .scale(yScale_ff);
+    //                        .ticks(7); // a bit of customisation
+
+
+            // draw bars
+            svgFreq.selectAll("rect")
+                .data(csv)
+                .enter()
+                .append("rect")
+                    .attr("x", function(v){return xScale(v.date)})
+                    .attr("y", function(v){return yScale_ff(v.dayFreq)})
+                    .attr("width", firefreqWidth / csv.length - barPadding) 
+                    .attr("height", function(v){return firefreqHeight - margin.bottom - yScale_ff(v.dayFreq)})
+                    .attr("fill", "orange")
+
+                    // interaction
+                    .on("mouseover", mouseover)
+                    .on("mouseout", mouseout)
+                    .on("click", click);
+
+            // draw axes
+            svgFreq.append("g")
+                .attr("transform", "translate(0," + (firefreqHeight - margin.bottom) + ")")
+                .call(xAxis);
+
+            svgFreq.append("g")
+                .attr("transform", "translate(" + margin.left + ", 0)")
+                .call(yAxis_ff);
+            
+            var notClicked = true;
+            
+            function mouseover(csv){
+                if(notClicked){
+                        // map interaction: highlight fires started on that date             
+                        var fireDate = date2string(csv.date);
+                        
+                        
+                        g.selectAll("path")
+                            .attr("fill", function(v){
+                            if (v.properties.StartDate == fireDate) {
+                                return "red"
+                            } else {
+                                return "orange"
+                            }
+                        });
+
+                        // bar interaction and tooltip
+                        d3.select(this)
+                            .attr("fill", "#aa2323");
+
+                        var xPosition = d3.event.pageX + 10;
+
+                        d3.select("#firefreq_tooltip")
+                            .style("left", xPosition + "px")
+                            .style("bottom", "138px")
+                            .select("#fireDate").text(csv.dateString);
+
+                        d3.select("#firesStarted").text(csv.dayFreq);
+                        d3.select("#activeFires").text(csv.active);
+
+                        d3.select("#firefreq_tooltip")
+                            .classed("hidden", false);
+
+                        // AQ plot interaction
+                        var newXscale = xScale.range([margin.left, aqplotWidth - margin.right]);
+
+                        d3.selectAll("#aq2, #aq3, #aq4")
+                            .append("line")
+                            .attr("id", "aqInd")
+                            .attr("x1", newXscale(csv.date))
+                            .attr("y1", 0)
+                            .attr("x2", newXscale(csv.date))
+                            .attr("y2", aqplotHeight/5)
+                            .attr("stroke", "blue");
+
+                        d3.selectAll("#aq1")
+                            .append("line")
+                            .attr("id", "aq2Ind")
+                            .attr("x1", newXscale(csv.date))
+                            .attr("y1", margin.top)
+                            .attr("x2", newXscale(csv.date))
+                            .attr("y2", aqplotHeight/5)
+                            .attr("stroke", "blue");
+
+                        d3.selectAll("#burntarea")
+                            .append("line")
+                            .attr("id", "areaInd")
+                            .attr("x1", newXscale(csv.date))
+                            .attr("y1", 0)
+                            .attr("x2", newXscale(csv.date))
+                            .attr("y2", aqplotHeight/5 - margin.bottom)
+                            .attr("stroke", "blue");
+                    }
+            }
+            function mouseout(){
+                    
+                if (notClicked){
+                    d3.select("#firefreq_tooltip")
+                        .classed("hidden", true);
+                    d3.select(this)
+                            .attr("fill", "orange");
+                    d3.selectAll("#aqInd, #aq2Ind, #areaInd").remove();
+                    g.selectAll("path")
+                        .attr("fill", "orange");
+                };
+                
+            };
+            
+            function click(csv){
+                                                
+                notClicked = !notClicked;
+                
+                if(!notClicked){
+                    var fireDate = date2string(csv.date);
+                
+                    g.selectAll("path")
+                        .attr("fill", function(v){
+                        if (v.properties.StartDate <= fireDate && v.properties.EndDate < fireDate){
+                            return "black"
+                        } else if (v.properties.StartDate <= fireDate && v.properties.EndDate > fireDate){
+                            return "red"
+                        } else {
+                            return "none"
+                        }
+                    });
+                }
+                
+            }
+            
+            svgFreq.on("click", function(){
+                if (notClicked){
+                    d3.select(this).selectAll("rect").attr("fill", "orange");
+                    notClicked = true;
+                }
+                
+                
+            });
+        });    
+        
     });
-    
- 
-    
+
 };
