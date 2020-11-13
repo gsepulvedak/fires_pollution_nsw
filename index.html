@@ -13,15 +13,12 @@
     </head>
     
     <body>
+        <div id="title" class="container">
+            <h1 class="title">Australian summer 2019-2020 bushfires and the effects on air-quality conditions in NSW.</h1>
+        </div>
         <div id="map" class="container"></div>
         <div id="aqplot" class="container"></div>
-<!--
-        <div id="heatmap" class="container"></div>
-        <div id="pollplot" class="container"></div>
--->
         <div id="firefreq" class="container"></div>
-<!--        <div id="summary" class="container"></div>-->
-        
         <div id="map_tooltip" class="hidden">
             <p>Name: <span id="fireName">0</span></p>
             <p>Date period: <span id="dateRange">0</span></p>
@@ -39,6 +36,30 @@
             <p>Date: <span id="aqDate">0</span></p>
             <p>Measurements average: <span id="aqAverage">0</span></p>
         </div>
+        
+        <div id="welcome" class="hidden text">
+            <p>Welcome to the bushfires / air-quality conditions explorer! It describes the 2019 - 2020 Australian summer bushfires and their relationship with particulate matter (PM) atmospheric concentrations.</p>
+            <br>
+            <p>The <strong>map</strong> to the far left shows all registered bushfires from 01/07/2019 to 03/05/2020 in NSW.</p>
+            <br>
+            <p>The <strong>line plots</strong> to the left show the average concentration of PM, measured by monitoring sites in a given latitudinal section. The red area below shows the accumulated burnt area in time.</p>
+            <br>
+            <p>The <strong>bar plot</strong> at the bottom shows the number of active bushfires per day.</p>
+            <br>
+            <p>You can start exploring by hovering over the orange bars in this plot.</p>
+        </div>
+        <div id="flow1" class="hidden text">
+            <p>When hovering, the map will show in red the fires that started the day each bar corresponds to, and an indicator in the air quality plots will help to understand air quality conditions near that given day.</p>
+            <br>
+            <p>Click on a bar and check how the map now shows in <strong color="red">red</strong> all active fires up to that date, and in <strong>black</strong> all the already inactive fires. Click on any bar to restore the explorer.</p>
+        </div>
+        <div id="flow2" class="hidden text">
+            <p>Or, you can hover over the air quality plots and have a rough idea of PM concentration in the different latitudinal sections. You can then click on the orange bar at the corresponding date and see in the map how fires are related to PM concentrations!</p>
+        </div>
+        <div id="author" class="hidden text">
+            <p><strong>Author:</strong> Gonzalo Sepulveda.</p>
+        </div>
+        
         
         <script src="https://d3js.org/d3.v4.min.js"></script>
         <script src="https://d3js.org/d3-scale-chromatic.v2.min.js"></script>

@@ -1,21 +1,28 @@
 .container {
-    border-style:dashed;
+    border-style:none;
     position:absolute;
     border-width: 1px;
 }
 
+#title {
+    font-family: sans-serif;
+    left: 40px;
+}
+
 #map {
-    top:50px;
+    top:100px;
     left:10px;
     width:700px;
     height:650px;
 }
 
 #aqplot {
-    top:50px;
+    top:100px;
     left:720px;
     width:700px;
     height:650px;
+    border-right: solid;
+    border-width: 1px;
 }
 
 #heatmap {
@@ -33,10 +40,12 @@
 }
 
 #firefreq {
-    top:750px;
+    top:780px;
     left:10px;
     width:1410px;
     height:150px;
+    border-right: solid;
+    border-width: 1px;
 }
 
 #summary {
@@ -113,4 +122,64 @@
 
 .leaflet-top-pane {
     pointer-events: none;
+}
+
+.legend {
+    vertical-align: bottom;
+    font-family: sans-serif;
+    font-size: 13px;
+}
+
+.plotTitle {
+    vertical-align: bottom;
+    font-family: sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.plotSubtitle {
+    vertical-align: bottom;
+    font-family: sans-serif;
+    font-size: 13px;
+    font-style: italic;
+    color: grey;
+}
+
+p {
+    margin: 0;
+    font-family: sans-serif;
+    font-size: 15px;
+    line-height: 20px;
+}
+
+.hidden.text {
+    display:none;
+}
+
+.text {
+    position: absolute;
+    width: 400px;
+    height: auto;
+    border: none;
+    background-color: white;
+    pointer-events: none;
+    opacity: 1;
+    border-style: none;
+    border-radius: 10px;
+    padding-left: 10px;
+}
+
+.text {
+ animation-name: appear;
+ animation-duration: 1s;
+ animation-timing-function: linear;
+ animation-iteration-count: 1;
+}
+
+@keyframes appear {  
+ 0% { opacity: 0.0; }
+ 25% { opacity: 0.25; }
+ 50% { opacity: 0.5; }
+ 75% { opacity: 0.75; }
+ 100% { opacity: 1; }
 }
