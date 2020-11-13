@@ -4,7 +4,7 @@ window.onload = function () {
     var parseDate = d3.timeParse("%Y-%m-%d"),
         date2string = d3.timeFormat("%Y-%m-%d");
     
-    // ---- AIR QUALITY LINE PLOTS -----
+    // ---- AIR QUALITY PLOTS VARIABLES -----
     
     var aqplotWidth = 700,
         aqplotHeight = 650,
@@ -36,11 +36,71 @@ window.onload = function () {
             return d.filter(function(v){return (v.lat_group == group && v.param == param)})
         };
     
-    // add svg
+    // add aq svg
     var ids = ["aq1", "aq2", "aq3", "aq4"]
     ids.forEach(addSvg);
+    addSvg("burntarea");
     
-    // generate plots
+    // ---- BURNT AREA PLOT -----
+    
+    var burntWidth = 700,
+        burntHeight = 650,
+        burntParser = function(d){
+            return {
+                date: parseDate(d.date),
+                area: parseFloat(d.area),
+                cum_area: parseFloat(d.cum_area)
+            };
+        };
+    
+    var svgBurnt = d3.select("#burntarea")
+    
+    // generate plot
+    d3.csv("data/burntarea.csv", burntParser, function(d){
+        
+        // scales and axes
+        var xScale = d3.scaleTime()
+                        .domain(d3.extent(d, function(v) {return v.date}))
+                        .range([margin.left, burntWidth - margin.right]),
+        
+            yScale = d3.scaleLinear()
+                            .domain(d3.extent(d, function(v){return v.cum_area}))
+                            .range([burntHeight/5 - margin.bottom, margin.top]),
+        
+            xAxis = d3.axisBottom()
+                        .scale(xScale),
+        
+            yAxis = d3.axisLeft()
+                            .scale(yScale)
+                            .ticks(3)
+                            .tickFormat(d3.format(".2s")),
+            
+            area = d3.area()
+                        .x(function(d){return xScale(d.date)})
+                        .y0(yScale(0))
+                        .y1(function(d){return yScale(d.cum_area)});
+            
+        // add area path
+        svgBurnt.append("path")
+            .datum(d)
+                .attr("stroke", "#db7979")
+                .attr("fill", "#db7979")
+                .attr("d", area);
+        
+        //add axes
+        d3.select("#burntarea")
+            .append("g")
+            .attr("transform", "translate(0,"  + (burntHeight/5 - margin.bottom) + ")")
+            .call(xAxis);
+        
+        d3.select("#burntarea")
+            .append("g")
+            .attr("transform", "translate(" + margin.left + ",0)")
+            .call(yAxis);
+        
+    });
+    
+    // AQ LINE PLOTS
     d3.csv("data/aqplot.csv", aqplotParser, function(d){
        
         // scales and axes
@@ -75,7 +135,16 @@ window.onload = function () {
                             .append("path")
                             .datum(filterData(d, group, "PM25"))
                             .attr("class", "line PM25")
-                            .attr("d", line);
+                            .attr("d", line),
+                    
+                    bottomLine = d3.select(id)
+                                    .append("line")
+                                    .attr("x1", margin.left)
+                                    .attr("y1", aqplotHeight/5 - margin.bottom + 0.5)
+                                    .attr("x2", aqplotWidth - margin.right)
+                                    .attr("y2", aqplotHeight/5 - margin.bottom + 0.5)
+                                    .attr("stroke", "black")
+                                    .attr("stroke-width", "1px");
             
                 // focus on line plots hovering
                 var circle1 = d3.select(id)
@@ -98,7 +167,7 @@ window.onload = function () {
                                 .append("circle")
                                 .attr("r", 3)
                                 .attr("cy", aqplotHeight/5 - margin.bottom)
-                                .attr("fill", "#ea1717")
+                                .attr("fill", "#1717ea")
                                 .attr("opacity", 0);
                 
                 // get coordinates of path to draw circle accordingly (based on http://bl.ocks.org/methodofaction/3824661)
@@ -145,7 +214,7 @@ window.onload = function () {
                             .attr("y1", margin.top)
                             .attr("x2", x)
                             .attr("y2", aqplotHeight/5 - margin.bottom)
-                            .attr("stroke", "#ea1717")
+                            .attr("stroke", "#1717ea")
                             .attr("opacity", 1);
                     
                         circle2
@@ -169,7 +238,6 @@ window.onload = function () {
             
             var value = obj[key];
             addLine(key, value);
-//            addLine(key, value, "PM25");
             
             // and y axis
             d3.select(key)
@@ -178,76 +246,58 @@ window.onload = function () {
                     .call(yAxis_aq);
         }
         
-        // values over path. Based on http://bl.ocks.org/methodofaction/3824661
+        // legend
+        var gLegend = d3.select("#aq1").append("g")
+                .attr("transform", "translate(" + (aqplotWidth - 110) + "," + (margin.top - 30) + ")");
+                            
+        var addLegend = function(stroke, param, yOffset){
+            gLegend.append("line")
+                .attr("x1", 0)
+                .attr("y1", yOffset)
+                .attr("x2", 20)
+                .attr("y2", yOffset)
+                .attr("stroke", stroke);
         
-        
-            
-        
-    });
-    
-    // ---- BURNT AREA PLOT -----
-    
-    var burntWidth = 700,
-        burntHeight = 650,
-        burntParser = function(d){
-            return {
-                date: parseDate(d.date),
-                area: parseFloat(d.area),
-                cum_area: parseFloat(d.cum_area)
-            };
+            gLegend.append("text")
+                .attr("x", 30)
+                .attr("y", yOffset + 4)
+                .attr("class", "legend")
+                .text(param);
         };
-    
-    var svgBurnt = d3.select("#aqplot")
-                        .append("svg")
-                        .attr("width", burntWidth)
-                        .attr("height", burntHeight/5)
-                        .attr("id", "burntarea")
-                        .style("display", "block")
-    
-    // generate plot
-    d3.csv("data/burntarea.csv", burntParser, function(d){
         
-        // scales and axes
-        var xScale = d3.scaleTime()
-                        .domain(d3.extent(d, function(v) {return v.date}))
-                        .range([margin.left, burntWidth - margin.right]),
-        
-            yScale = d3.scaleLinear()
-                            .domain(d3.extent(d, function(v){return v.cum_area}))
-                            .range([burntHeight/5 - margin.bottom, margin.top]),
-        
-            xAxis = d3.axisBottom()
-                        .scale(xScale),
-        
-            yAxis = d3.axisLeft()
-                            .scale(yScale)
-                            .ticks(3)
-                            .tickFormat(d3.format(".2s")),
+        var addTitle = function(title, subtitle, svgId, yOffset){
             
-            area = d3.area()
-                        .x(function(d){return xScale(d.date)})
-                        .y0(yScale(0))
-                        .y1(function(d){return yScale(d.cum_area)});
+            var g = d3.select(svgId).append("g")
+                        .attr("transform", "translate(-10," + yOffset + ")");
             
-        // add area path
-        svgBurnt.append("path")
-            .datum(d)
-                .attr("stroke", "#db7979")
-                .attr("fill", "#db7979")
-                .attr("d", area);
+            g.append("text")
+                .attr("class", "plotTitle")
+                .attr("x", margin.left + 50)
+                .attr("y", margin.top)
+                .text(title);
+            
+            g.append("text")
+                .attr("class", "plotSubtitle")
+                .attr("x", margin.left + 50)
+                .attr("y", margin.top + 15)
+                .text(subtitle);
+        };
         
-        //add axes
-        d3.select("#burntarea")
-            .append("g")
-            .attr("transform", "translate(0,"  + (burntHeight/5 - margin.bottom) + ")")
-            .call(xAxis);
+        addLegend("black", "PM10", 50);
+        addLegend("red", "PM2.5", 70);
         
-        d3.select("#burntarea")
-            .append("g")
-            .attr("transform", "translate(" + margin.left + ",0)")
-            .call(yAxis);
+        addTitle("PM concentration μg/cm3", "28°S - 30°S sites average", "#aq1", 10);
+        addTitle("", "30°S - 32°S sites average", "#aq2", 10);
+        addTitle("", "32°S - 34°S sites average", "#aq3", 10);
+        addTitle("", "34°S - 36°S sites average", "#aq4", 10);
+        addTitle("Accumulated burnt area", "Total Hectares burnt up to date", "#burntarea", 10);
+        addTitle("Active fires", "Count of active fires up to date", "#svg_ff", 20);
+        
+            
         
     });
+    
+  
     
     // ---- FIRES MAP. Based on Mike Bostock's tutorial at https://bost.ocks.org/mike/leaflet/-----
     
@@ -377,7 +427,7 @@ window.onload = function () {
                             .range([margin.left, firefreqWidth - margin.right]);
 
             var yScale_ff = d3.scaleLinear()
-                            .domain(d3.extent(csv, function(v) {return v.dayFreq}))
+                            .domain(d3.extent(csv, function(v) {return v.active}))
                             .range([firefreqHeight - margin.bottom, margin.top]);
 
             // axes
@@ -396,9 +446,9 @@ window.onload = function () {
                 .enter()
                 .append("rect")
                     .attr("x", function(v){return xScale(v.date)})
-                    .attr("y", function(v){return yScale_ff(v.dayFreq)})
+                    .attr("y", function(v){return yScale_ff(v.active)})
                     .attr("width", firefreqWidth / csv.length - barPadding) 
-                    .attr("height", function(v){return firefreqHeight - margin.bottom - yScale_ff(v.dayFreq)})
+                    .attr("height", function(v){return firefreqHeight - margin.bottom - yScale_ff(v.active)})
                     .attr("fill", "orange")
 
                     // interaction
@@ -418,6 +468,17 @@ window.onload = function () {
             var notClicked = true;
             
             function mouseover(csv){
+                
+                if (document.getElementById("welcome").className == "text"){
+                    
+                    var top = document.getElementById("welcome").offsetHeight + 150;
+                
+                    d3.select("#flow1")
+                        .style("top", top + "px")
+                        .style("left", left + "px")
+                        .attr("class", "text");
+                }
+                
                 if(notClicked){
                         // map interaction: highlight fires started on that date             
                         var fireDate = date2string(csv.date);
@@ -440,7 +501,7 @@ window.onload = function () {
 
                         d3.select("#firefreq_tooltip")
                             .style("left", xPosition + "px")
-                            .style("bottom", "138px")
+                            .style("bottom", "100px")
                             .select("#fireDate").text(csv.dateString);
 
                         d3.select("#firesStarted").text(csv.dayFreq);
@@ -481,6 +542,21 @@ window.onload = function () {
                     }
             }
             function mouseout(){
+                
+                  if (document.getElementById("flow2").className == "text"){
+
+                      if (notClicked){
+                        var top1 = document.getElementById("welcome").offsetHeight,
+                        top2 = document.getElementById("flow1").offsetHeight,
+                        top3 = document.getElementById("flow2").offsetHeight + 300;
+                
+                        d3.select("#author")
+                            .style("top", (top1 + top2 + top3) + "px")
+                            .style("left", left + "px")
+                            .attr("class", "text");
+                    }
+                    
+                }
                     
                 if (notClicked){
                     d3.select("#firefreq_tooltip")
@@ -489,7 +565,8 @@ window.onload = function () {
                             .attr("fill", "orange");
                     d3.selectAll("#aqInd, #aq2Ind, #areaInd").remove();
                     g.selectAll("path")
-                        .attr("fill", "orange");
+                        .attr("fill", "orange")
+                        .attr("stroke", "grey");
                 };
                 
             };
@@ -503,21 +580,45 @@ window.onload = function () {
                 
                     g.selectAll("path")
                         .attr("fill", function(v){
-                        if (v.properties.StartDate <= fireDate && v.properties.EndDate < fireDate){
-                            return "black"
-                        } else if (v.properties.StartDate <= fireDate && v.properties.EndDate > fireDate){
-                            return "red"
-                        } else {
-                            return "none"
-                        }
+                            if (v.properties.StartDate <= fireDate && v.properties.EndDate < fireDate){
+                                return "black"
+                            } else if (v.properties.StartDate <= fireDate && v.properties.EndDate > fireDate){
+                                return "red"
+                            } else {
+                                return "none"
+                            }
+                        
+                        })
+                        .attr("stroke", function(v){
+                                if (v.properties.StartDate <= fireDate && v.properties.EndDate < fireDate){
+                                    return "grey"
+                                } else if (v.properties.StartDate <= fireDate && v.properties.EndDate > fireDate){
+                                    return "grey"
+                                } else {
+                                    return "none"
+                                }
                     });
-                }
+                };
                 
-            }
+            };
             
             svgFreq.on("click", function(){
+                
+                if (document.getElementById("flow1").className == "text"){
+                    
+                    var top1 = document.getElementById("welcome").offsetHeight,
+                        top2 = document.getElementById("flow1").offsetHeight + 200;
+                
+                    d3.select("#flow2")
+                        .style("top", (top1 + top2) + "px")
+                        .style("left", left + "px")
+                        .attr("class", "text");
+                    
+                }
+                
                 if (notClicked){
                     d3.select(this).selectAll("rect").attr("fill", "orange");
+                    d3.select("#firefreq_tooltip").classed("hidden", true);
                     notClicked = true;
                 }
                 
@@ -526,5 +627,17 @@ window.onload = function () {
         });    
         
     });
+    
+    // Welcome explanatory text
+    var left = document.getElementById("aqplot").offsetLeft + aqplotWidth + 10,
+        top = document.getElementById("aqplot").offsetTop;
+    
+    
+    d3.select("#welcome")
+        .style("left", left + "px")
+        .style("top", top + "px")
+        .transition()
+        .delay(3000)
+        .attr("class", "text");
 
 };
