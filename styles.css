@@ -152,6 +152,14 @@ p {
     line-height: 20px;
 }
 
+#sources p {
+    margin:0;
+}
+
+#sources strong {
+    margin:0;
+}
+
 .hidden.text {
     display:none;
 }

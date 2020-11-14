@@ -471,7 +471,7 @@ window.onload = function () {
                 
                 if (document.getElementById("welcome").className == "text"){
                     
-                    var top = document.getElementById("welcome").offsetHeight + 150;
+                    var top = document.getElementById("welcome").offsetHeight + 130;
                 
                     d3.select("#flow1")
                         .style("top", top + "px")
@@ -543,21 +543,6 @@ window.onload = function () {
             }
             function mouseout(){
                 
-                  if (document.getElementById("flow2").className == "text"){
-
-                      if (notClicked){
-                        var top1 = document.getElementById("welcome").offsetHeight,
-                        top2 = document.getElementById("flow1").offsetHeight,
-                        top3 = document.getElementById("flow2").offsetHeight + 300;
-                
-                        d3.select("#author")
-                            .style("top", (top1 + top2 + top3) + "px")
-                            .style("left", left + "px")
-                            .attr("class", "text");
-                    }
-                    
-                }
-                    
                 if (notClicked){
                     d3.select("#firefreq_tooltip")
                         .classed("hidden", true);
@@ -607,7 +592,7 @@ window.onload = function () {
                 if (document.getElementById("flow1").className == "text"){
                     
                     var top1 = document.getElementById("welcome").offsetHeight,
-                        top2 = document.getElementById("flow1").offsetHeight + 200;
+                        top2 = document.getElementById("flow1").offsetHeight + 150;
                 
                     d3.select("#flow2")
                         .style("top", (top1 + top2) + "px")

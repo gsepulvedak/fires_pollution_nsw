@@ -20,6 +20,13 @@
         <div id="map" class="container"></div>
         <div id="aqplot" class="container"></div>
         <div id="firefreq" class="container"></div>
+        <div id="sources" class="container" style="left:1440px; width:400px; top:850px">
+            <p><strong>Author:</strong> Gonzalo Sepulveda.</p>
+            <p>Data sources:</p>
+            <a href="https://www.dpie.nsw.gov.au/air-quality/air-quality-data-services">Air quality data services - NSW Government</a><br>
+            <a href="https://data.airquality.nsw.gov.au/api/Data/get_SiteDetails">Site details</a><br>
+            <a href="https://datasets.seed.nsw.gov.au/dataset/fire-history-wildfires-and-prescribed-burns-1e8b6">NPWS Fire History - Wildfires and Prescribed Burns</a>
+        </div>
         <div id="map_tooltip" class="hidden">
             <p>Name: <span id="fireName">0</span></p>
             <p>Date period: <span id="dateRange">0</span></p>
@@ -57,10 +64,6 @@
         <div id="flow2" class="hidden text">
             <p>Or, you can hover over the air quality plots and have a rough idea of PM concentration in the different latitudinal sections. You can then click on the orange bar at the corresponding date and see in the map how fires are related to PM concentrations!</p>
         </div>
-        <div id="author" class="hidden text">
-            <p><strong>Author:</strong> Gonzalo Sepulveda.</p>
-        </div>
-        
         
         <script src="https://d3js.org/d3.v4.min.js"></script>
         <script src="https://d3js.org/d3-scale-chromatic.v2.min.js"></script>
