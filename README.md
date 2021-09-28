@@ -18,6 +18,7 @@ The purpose of this README file is to provide a general overview of the tool and
 # User guide
 The following image shows the interactive dashboard. It includes a map with fires represented as polygons, air-quality line plots for different latitudinal sections of NSW (aligned with the map everytime the dashboard is refreshed), and a bar plot indicating the frequency of fires started per day, from July 2019 to May 2020.
 
+![](images/image1.png)
 ##IMAGE OF DASHBOARD HERE##
 
 To the right side of the screen, the tool displays informative text suggesting an interaction workflow that allows to explore the information in an organised manner. The text appears along with the user interaction, although it is not necessary to follow these instructions to start interacting.
