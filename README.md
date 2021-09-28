@@ -34,14 +34,14 @@ At the same time, hovering over the bars will display a vertical line in the air
 
 By clicking on a bar on any given day, the map will display fires only from past days up to the selected day. Active fires will be displayed in red, while already extinguished fires will be shown in black (see image below). The blue vertical indicator in the air quality plots will remain displayed while the user interacts with the map, exploring active and inactive fires. Clicking again on any bar will restore the dashboard to its original state.
 
-<img src="images/image4.png" alt="image1" width="400" height="400">
+<img src="images/image4.png" alt="image1" width="500" height="400">
 
 ## Map
 The implemented map is based on the javascript Leaflet library, so interactions with it include dragging and zooming in/out. Hovering over fire polygons will show a tooltip with name and date period of the corresponding fire, and also the area this fire burned. Polygons are highlighted in red when hovered over.
 
-<img src="images/image5.png" alt="image1" width="400" height="400">
+<img src="images/image5.png" alt="image1" width="500" height="400">
 
 ## Air-quality plots
 Finally, interaction with air quality plots is very simple. On hover, they will display a horizontal bar from the line value to the y-axis, allowing the user to get a rough idea of the PM10 pollution concentration. Simultaneously, a vertical indicator will be displayed accordingly in the accumulated burnt area plot to facilitate comparison between pollution concentration and area already burnt in the study area (see image below).
 
-<img src="images/image6.png" alt="image1" width="400" height="200">
+<img src="images/image6.png" alt="image1" width="500" height="250">
